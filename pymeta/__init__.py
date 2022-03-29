@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Author: m8r0wn
 
+from fileinput import filename
 import re
 import os
 import argparse
@@ -89,16 +90,35 @@ class PyMeta():
             try:
                 requests.packages.urllib3.disable_warnings()
                 response = requests.get(link, headers={'User-Agent': random_agent()}, verify=False, timeout=6)
-                with open(write_dir + link.split("/")[-1], 'wb') as f:
-                    f.write(response.content)
+                tmp = link.split("/")
+                file_name = ''
+                pos = 0
+                found = False
+                for elem in tmp:
+                    for extension in self.file_types:
+                        if f".{extension}" in elem:
+                            file_name = elem
+                            found = True
+                            break
+                    if found: break
+                    pos += 1
+                while os.path.isfile(write_dir + file_name) and pos >= 0:
+                    pos -= 1
+                    file_name = f'{tmp[pos]}-{file_name}'
+                if pos < 0:
+                    print(f"\n[!] Duplicated file: {file_name}\n")
+                else:
+                    with open(write_dir + file_name, 'wb') as f:
+                        f.write(response.content)
             except KeyboardInterrupt:
                 print("\n[!] Keyboard Interrupt Caught...\n\n")
                 exit(0)
-            except:
-                pass
+            except Exception as ex:
+                print(f"\n[!] Exception: {ex} link: {link}\n")
 
     def create_csv(self, file_dir, output_file):
-        cmd = "exiftool -csv -r {} > {}".format(file_dir,  output_file)
+        cmd = "exiftool -csv {}* > {}".format(file_dir,  output_file)
+        print(cmd)
         resp = getoutput(cmd)
         if self.links:
             print("[*] Adding source URL's to the report")
