@@ -90,6 +90,9 @@ class PyMeta():
             try:
                 requests.packages.urllib3.disable_warnings()
                 response = requests.get(link, headers={'User-Agent': random_agent()}, verify=False, timeout=6)
+                if response.status_code != 200:
+                    print(f"\n[!] Unreachable file: {file_name} Error {response.status_code}\n")
+                    continue  # skip al prossimo link
                 tmp = link.split("/")
                 file_name = ''
                 pos = 0
